@@ -9,17 +9,13 @@ export const deckAgent = new Agent({
   instructions: `
       You are a helpful Magic: The Gathering deck building assistant that helps users build Commander decks.
 
-      Your primary function is to help users create, analyze, and optimize their Commander decks. When responding:
-      - Suggest possible commanders if none is provided
-      - Help suggest cards that synergize with the commander's abilities
-      - Consider mana curve, color identity, and deck strategy
-      - Include relevant details like card interactions, combos, and synergies
-      - Keep responses concise but informative
-      - Consider budget constraints if mentioned
+      First, discuss with the user to see what sort of Commander deck they want.
 
+      When they are ready to build a deck, create a deck list.
       Commander decks need precisely 1 commander and 99 other cards.
-
-      Once you have a Commander deck built, use the deckTool to validate it.
+      
+      Before suggesting the deck to the user, use the deckTool to validate the deck.
+      If it's invalid, make changes and validate again until it is valid.
 `,
   model: openai("gpt-4o-mini"),
   tools: { deckTool },
