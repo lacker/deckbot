@@ -10,37 +10,35 @@ export const deckTool = createTool({
   }),
   outputSchema: z.object({
     analysis: z.string(),
-    suggestions: z.array(z.string()),
-    synergies: z.array(z.string()),
-    manaCurve: z.object({
-      low: z.number(),
-      medium: z.number(),
-      high: z.number(),
-    }),
+    errors: z.array(z.string()),
   }),
   execute: async ({ context }) => {
-    // This is a placeholder implementation
-    // In a real implementation, this would fetch data from a card database
-    // like Scryfall API or similar
+    // TODO: this deck tool should hit a backend API and include information
+    // like card statistics and prices.
 
-    const commander = context.commander || "No commander";
+    const commander = context.commander;
     const cards = context.cards || [];
+    const errors: string[] = [];
+
+    // Check for commander
+    if (!commander) {
+      errors.push("You need a commander");
+    }
+
+    // Check for exactly 99 cards
+    if (cards.length !== 99) {
+      errors.push(`You have ${cards.length} cards but you should have 99`);
+    }
+
+    // Basic analysis
+    const analysis =
+      errors.length == 0
+        ? "The deck is valid."
+        : "Invalid deck. Please fix the errors.";
 
     return {
-      analysis: `Analyzing deck with ${commander} and ${cards.length} cards`,
-      suggestions: [
-        "Sol Ring",
-        "Command Tower",
-        "Arcane Signet",
-        "Lightning Greaves",
-        "Swiftfoot Boots",
-      ],
-      synergies: ["Card draw engines", "Mana ramp package", "Removal suite"],
-      manaCurve: {
-        low: 15,
-        medium: 20,
-        high: 10,
-      },
+      analysis,
+      errors,
     };
   },
 });
