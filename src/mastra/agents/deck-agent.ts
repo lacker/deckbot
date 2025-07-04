@@ -2,7 +2,8 @@ import { openai } from "@ai-sdk/openai";
 import { Agent } from "@mastra/core/agent";
 import { Memory } from "@mastra/memory";
 import { LibSQLStore } from "@mastra/libsql";
-import { deckTool } from "../tools/deck-tool";
+import { addCardsTool } from "../tools/add-cards-tool";
+import { removeCardsTool } from "../tools/remove-cards-tool";
 
 export const deckAgent = new Agent({
   name: "Deck Agent",
@@ -14,11 +15,13 @@ export const deckAgent = new Agent({
       When they are ready to build a deck, create a deck list.
       Commander decks need precisely 1 commander and 99 other cards.
       
-      Before suggesting the deck to the user, use the deckTool to validate the deck.
+      The first step in building a deck is to use the addCardsTool to add cards.
       If it's invalid, make changes and validate again until it is valid.
+      If it has too few cards, use the addCardsTool to add more.
+      If it has too many cards, use the removeCardsTool to remove some.
 `,
-  model: openai("gpt-4o-mini"),
-  tools: { deckTool },
+  model: openai("gpt-4o"),
+  tools: { addCardsTool, removeCardsTool },
   memory: new Memory({
     storage: new LibSQLStore({
       url: "file:../mastra.db", // path is relative to the .mastra/output directory
