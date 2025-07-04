@@ -32,11 +32,11 @@ function getWeatherCondition(code: number): string {
   return conditions[code] || 'Unknown';
 }
 
-const fetchWeather = createStep({
-  id: 'fetch-weather',
-  description: 'Fetches weather forecast for a given city',
+const fetchDeckInfo = createStep({
+  id: 'fetch-deck-info',
+  description: 'Fetches deck information for a given commander',
   inputSchema: z.object({
-    city: z.string().describe('The city to get the weather for'),
+    commander: z.string().describe('The commander to build around'),
   }),
   outputSchema: forecastSchema,
   execute: async ({ inputData }) => {
@@ -86,9 +86,9 @@ const fetchWeather = createStep({
   },
 });
 
-const planActivities = createStep({
-  id: 'plan-activities',
-  description: 'Suggests activities based on weather conditions',
+const suggestCards = createStep({
+  id: 'suggest-cards',
+  description: 'Suggests cards based on commander and strategy',
   inputSchema: forecastSchema,
   outputSchema: z.object({
     activities: z.string(),
@@ -100,9 +100,9 @@ const planActivities = createStep({
       throw new Error('Forecast data not found');
     }
 
-    const agent = mastra?.getAgent('weatherAgent');
+    const agent = mastra?.getAgent('deckAgent');
     if (!agent) {
-      throw new Error('Weather agent not found');
+      throw new Error('Deck agent not found');
     }
 
     const prompt = `Based on the following weather forecast for ${forecast.location}, suggest appropriate activities:
@@ -167,18 +167,18 @@ const planActivities = createStep({
   },
 });
 
-const weatherWorkflow = createWorkflow({
-  id: 'weather-workflow',
+const deckWorkflow = createWorkflow({
+  id: 'deck-workflow',
   inputSchema: z.object({
-    city: z.string().describe('The city to get the weather for'),
+    commander: z.string().describe('The commander to build around'),
   }),
   outputSchema: z.object({
     activities: z.string(),
   }),
 })
-  .then(fetchWeather)
-  .then(planActivities);
+  .then(fetchDeckInfo)
+  .then(suggestCards);
 
-weatherWorkflow.commit();
+deckWorkflow.commit();
 
-export { weatherWorkflow };
+export { deckWorkflow };

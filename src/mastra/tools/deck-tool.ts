@@ -20,9 +20,9 @@ interface WeatherResponse {
   };
 }
 
-export const weatherTool = createTool({
-  id: 'get-weather',
-  description: 'Get current weather for a location',
+export const deckTool = createTool({
+  id: 'get-deck-info',
+  description: 'Get deck information and card suggestions',
   inputSchema: z.object({
     location: z.string().describe('City name'),
   }),
