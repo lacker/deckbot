@@ -27,4 +27,7 @@ export const deckAgent = new Agent({
       url: "file:../mastra.db", // path is relative to the .mastra/output directory
     }),
   }),
+  defaultGenerateOptions: {
+    maxSteps: 10,
+  },
 });
