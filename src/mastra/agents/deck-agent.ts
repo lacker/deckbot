@@ -32,4 +32,7 @@ export const deckAgent = new Agent({
   defaultGenerateOptions: {
     maxSteps: 10,
   },
+  defaultStreamOptions: {
+    maxSteps: 10,
+  },
 });
