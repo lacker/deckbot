@@ -23,6 +23,6 @@ export const removeCardsTool = createTool({
     // Get updated deck and analyze
     const deck = getDeck();
     
-    return await analyzeDeck(deck.commander, deck.cards);
+    return await analyzeDeck(deck);
   },
 });

@@ -1,25 +1,30 @@
 export async function analyzeDeck(
-  commander: string | undefined,
-  cards: string[]
+  deck: { commander?: string; cardCount: Map<string, number> }
 ): Promise<{ analysis: string; errors: string[]; url?: string }> {
   const errors: string[] = [];
+  
+  // Calculate total card count
+  let totalCards = 0;
+  deck.cardCount.forEach((count) => {
+    totalCards += count;
+  });
 
   // Check for commander
-  if (!commander) {
+  if (!deck.commander) {
     errors.push("You need a commander");
   }
 
   // Check for exactly 99 cards
-  if (cards.length < 99) {
-    let diff = 99 - cards.length;
+  if (totalCards < 99) {
+    let diff = 99 - totalCards;
     errors.push(
-      `You have ${cards.length} cards but you should have 99. Please add ${diff} more cards.`
+      `You have ${totalCards} cards but you should have 99. Please add ${diff} more cards.`
     );
   }
-  if (cards.length > 99) {
-    let diff = cards.length - 99;
+  if (totalCards > 99) {
+    let diff = totalCards - 99;
     errors.push(
-      `You have ${cards.length} cards but you should have 99. Please remove ${diff} cards.`
+      `You have ${totalCards} cards but you should have 99. Please remove ${diff} cards.`
     );
   }
 
@@ -33,16 +38,10 @@ export async function analyzeDeck(
 
   // Validate with Manapool API
   try {
-    // Count occurrences of each card
-    const cardCounts = new Map<string, number>();
-    cards.forEach((card) => {
-      cardCounts.set(card, (cardCounts.get(card) || 0) + 1);
-    });
-
     // Convert to Manapool API format
     const deckList = {
-      commander_names: [commander],
-      other_cards: Array.from(cardCounts.entries()).map(([name, quantity]) => ({
+      commander_names: [deck.commander],
+      other_cards: Array.from(deck.cardCount.entries()).map(([name, quantity]) => ({
         name,
         quantity,
       })),
@@ -97,9 +96,8 @@ export async function analyzeDeck(
 
   // Create URL if deck is valid
   let url: string | undefined;
-  console.error("cards:", cards);
-  if (errors.length === 0 && commander && cards.length === 99) {
-    const dec = makeDec(commander, cards);
+  if (errors.length === 0 && deck.commander && totalCards === 99) {
+    const dec = makeDec(deck);
     url = makeUrl(dec);
   }
 
@@ -110,25 +108,16 @@ export async function analyzeDeck(
   };
 }
 
-export function makeDec(
-  commander: string | undefined,
-  cards: string[]
-): string {
+export function makeDec(deck: { commander?: string; cardCount: Map<string, number> }): string {
   const lines: string[] = [];
 
-  // Count occurrences of each card
-  const cardCounts = new Map<string, number>();
-  cards.forEach((card) => {
-    cardCounts.set(card, (cardCounts.get(card) || 0) + 1);
-  });
-
   // Add commander first if present
-  if (commander) {
-    lines.push(`1 ${commander}`);
+  if (deck.commander) {
+    lines.push(`1 ${deck.commander}`);
   }
 
   // Add all other cards with their quantities
-  cardCounts.forEach((quantity, cardName) => {
+  deck.cardCount.forEach((quantity, cardName) => {
     lines.push(`${quantity} ${cardName}`);
   });
 
