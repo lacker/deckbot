@@ -13,6 +13,7 @@ export const addCardsTool = createTool({
   outputSchema: z.object({
     analysis: z.string(),
     errors: z.array(z.string()),
+    url: z.string().optional(),
   }),
   execute: async ({ context }) => {
     const cardsToAdd = context.cards || [];

@@ -19,6 +19,8 @@ export const deckAgent = new Agent({
       If it's invalid, make changes and validate again until it is valid.
       If it has too few cards, use the addCardsTool to add more.
       If it has too many cards, use the removeCardsTool to remove some.
+
+      Once the deck is valid, share the URL to purchase it, that the tool provides.
 `,
   model: openai("gpt-4o"),
   tools: { addCardsTool, removeCardsTool },

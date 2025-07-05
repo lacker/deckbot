@@ -1,7 +1,7 @@
 export async function analyzeDeck(
   commander: string | undefined,
   cards: string[]
-): Promise<{ analysis: string; errors: string[] }> {
+): Promise<{ analysis: string; errors: string[]; url?: string }> {
   const errors: string[] = [];
 
   // Check for commander
@@ -77,8 +77,49 @@ export async function analyzeDeck(
     }
   }
 
+  // Create URL if deck is valid
+  let url: string | undefined;
+  if (errors.length === 0 && commander && cards.length === 99) {
+    const dec = makeDec(commander, cards);
+    url = makeUrl(dec);
+  }
+  
   return {
     analysis,
     errors,
+    url,
   };
+}
+
+export function makeDec(commander: string | undefined, cards: string[]): string {
+  const lines: string[] = [];
+  
+  // Count occurrences of each card
+  const cardCounts = new Map<string, number>();
+  cards.forEach(card => {
+    cardCounts.set(card, (cardCounts.get(card) || 0) + 1);
+  });
+  
+  // Add commander first if present
+  if (commander) {
+    lines.push(`1 ${commander}`);
+  }
+  
+  // Add all other cards with their quantities
+  cardCounts.forEach((quantity, cardName) => {
+    lines.push(`${quantity} ${cardName}`);
+  });
+  
+  // Join all lines with newlines
+  return lines.join('\n');
+}
+
+export function makeUrl(dec: string): string {
+  // Base64 encode the dec content
+  const base64Dec = Buffer.from(dec).toString('base64');
+  
+  // Create URL with deck parameter
+  const url = `https://manapool.com/add-deck?deck=${encodeURIComponent(base64Dec)}`;
+  
+  return url;
 }
