@@ -49,10 +49,21 @@ export async function analyzeDeck(
     };
 
     // Call Manapool API to validate deck
+    const apiKey = process.env.MANAPOOL_API_KEY;
+    if (!apiKey) {
+      errors.push("MANAPOOL_API_KEY not found in environment variables");
+      return {
+        analysis: "The deck is invalid.",
+        errors,
+        url: undefined,
+      };
+    }
+    
     const response = await fetch("https://manapool.com/api/v1/deck", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        "X-ManaPool-Access-Token": apiKey,
       },
       body: JSON.stringify(deckList),
     });
