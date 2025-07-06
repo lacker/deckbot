@@ -1,8 +1,11 @@
-export async function analyzeDeck(
-  deck: { commander?: string; cardCount: Map<string, number> }
-): Promise<{ analysis: string; errors: string[]; url?: string }> {
+export async function analyzeDeck(deck: {
+  commander?: string;
+  cardCount: Map<string, number>;
+}): Promise<{ analysis: string; errors: string[]; url?: string }> {
+  console.log("Analyzing deck");
+
   const errors: string[] = [];
-  
+
   // Calculate total card count
   let totalCards = 0;
   deck.cardCount.forEach((count) => {
@@ -41,15 +44,20 @@ export async function analyzeDeck(
     // Convert to Manapool API format
     const deckList = {
       commander_names: [deck.commander],
-      other_cards: Array.from(deck.cardCount.entries()).map(([name, quantity]) => ({
-        name,
-        quantity,
-      })),
+      other_cards: Array.from(deck.cardCount.entries()).map(
+        ([name, quantity]) => ({
+          name,
+          quantity,
+        })
+      ),
     };
 
     // Call Manapool API to validate deck
     const apiKey = process.env.MANAPOOL_API_KEY;
+    const email = process.env.MANAPOOL_EMAIL;
+
     if (!apiKey) {
+      console.log("MANAPOOL_API_KEY not found in environment variables");
       errors.push("MANAPOOL_API_KEY not found in environment variables");
       return {
         analysis: "The deck is invalid.",
@@ -57,12 +65,23 @@ export async function analyzeDeck(
         url: undefined,
       };
     }
-    
+
+    if (!email) {
+      console.log("MANAPOOL_EMAIL not found in environment variables");
+      errors.push("MANAPOOL_EMAIL not found in environment variables");
+      return {
+        analysis: "The deck is invalid.",
+        errors,
+        url: undefined,
+      };
+    }
+
     const response = await fetch("https://manapool.com/api/v1/deck", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         "X-ManaPool-Access-Token": apiKey,
+        "X-ManaPool-Email": email,
       },
       body: JSON.stringify(deckList),
     });
@@ -70,11 +89,10 @@ export async function analyzeDeck(
     if (response.ok) {
       const result = await response.json();
       // Update analysis with API response
-      if (result.valid || result.is_valid) {
-        console.error("Looks good.");
-      } else if (result.errors || result.error_messages) {
-        const apiErrors = result.errors || result.error_messages || [];
-        errors.push(...apiErrors);
+      if (result.valid) {
+        // Looks good
+      } else {
+        errors.push("error: " + JSON.stringify(result.details));
       }
     } else {
       errors.push("Manapool API validation failed: " + response.status);
@@ -85,7 +103,7 @@ export async function analyzeDeck(
 
   if (errors.length > 0) {
     for (const error of errors) {
-      console.error("error:", error);
+      console.log("error:", error);
     }
     return {
       analysis: "The deck is invalid.",
@@ -95,6 +113,7 @@ export async function analyzeDeck(
   }
 
   // Create URL if deck is valid
+  console.log("Looks good.");
   let url: string | undefined;
   if (errors.length === 0 && deck.commander && totalCards === 99) {
     const dec = makeDec(deck);
@@ -108,7 +127,10 @@ export async function analyzeDeck(
   };
 }
 
-export function makeDec(deck: { commander?: string; cardCount: Map<string, number> }): string {
+export function makeDec(deck: {
+  commander?: string;
+  cardCount: Map<string, number>;
+}): string {
   const lines: string[] = [];
 
   // Add commander first if present
